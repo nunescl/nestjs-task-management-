@@ -2,7 +2,6 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { TaskStatus } from './task-status.enum';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { GetTasksFilterDto } from './dto/get-tasks-filter.dto';
-
 import { Task } from './task.entity';
 import { TasksRepository } from './tasks.repository';
 import { User } from 'src/auth/user.entity';
@@ -36,16 +35,27 @@ export class TasksService {
     return matches;
   }
 
-  // async updateTaskStatus(id: string, status: TaskStatus): Promise<Task> {
-  //   const task = await this.getTaskById(id);
-  //   task.status = status;
-  //   await this.tasksRepository.repo.save(task);
-  //   return task;
-  // }
+  async updateTaskStatus(
+    id: string,
+    status: TaskStatus,
+    user: User,
+  ): Promise<Task> {
+    const task = await this.getTaskById(id, user);
+    task.status = status;
+    await this.tasksRepository.repo.save(task);
+    return task;
+  }
 
-  async deleteTaskById(id: string): Promise<void> {
-    const result = await this.tasksRepository.repo.delete(id);
-    if (result.affected === 0)
-      throw new NotFoundException(`Task with ID "${id}" not found`);
+  async deleteTaskById(id: string, user: User): Promise<void> {
+    //error message is not working! Fix that
+    const result = await this.tasksRepository.repo
+      .createQueryBuilder('deleteByID')
+      .delete()
+      .where({ id })
+      .andWhere({ user });
+
+    if (!result) throw new NotFoundException(`Task with ID "${id}" not found`);
+
+    result.execute();
   }
 }
