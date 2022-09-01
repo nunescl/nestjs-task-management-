@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { User } from '../auth/user.entity';
 import { DataSource, Repository } from 'typeorm';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -59,5 +63,19 @@ export class TasksRepository {
       );
       throw new InternalServerErrorException();
     }
+  }
+
+  async getTaskById(id: string, user: User): Promise<Task> {
+    const matches = await this.repo
+      .createQueryBuilder('getTaskById')
+      .where({ id })
+      .andWhere({ user })
+      .getOne();
+
+    if (!matches) {
+      throw new NotFoundException(`Task with ID "${id}" not found`);
+    }
+
+    return matches;
   }
 }

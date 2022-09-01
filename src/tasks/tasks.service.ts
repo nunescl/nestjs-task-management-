@@ -22,17 +22,7 @@ export class TasksService {
   }
 
   async getTaskById(id: string, user: User): Promise<Task> {
-    const matches = await this.tasksRepository.repo
-      .createQueryBuilder('foundByID')
-      .where({ id })
-      .andWhere({ user })
-      .getOne();
-
-    if (!matches) {
-      throw new NotFoundException(`Task with ID "${id}" not found`);
-    }
-
-    return matches;
+    return this.tasksRepository.getTaskById(id, user);
   }
 
   async updateTaskStatus(
